@@ -1,4 +1,5 @@
 <?php
+
 namespace V17Development\FlarumSeo\Managers;
 
 use Flarum\Discussion\DiscussionRepository;
@@ -35,7 +36,7 @@ class Discussion
         $this->findDiscussion();
 
         // Discussion not found
-        if($this->discussion === null) return;
+        if ($this->discussion === null) return;
 
         // Create tags
         $this->createTags();
@@ -53,8 +54,7 @@ class Discussion
             $this->discussion = $this->discussionRepository->findOrFail($this->discussionId);
 
             // Discussion not found
-            if($this->discussion === null)
-            {
+            if ($this->discussion === null) {
                 return false;
             }
 
@@ -64,11 +64,10 @@ class Discussion
             $this->firstPost = array_shift($post);
 
             // First post not found
-            if($this->firstPost === null) {
+            if ($this->firstPost === null) {
                 return false;
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             // Do nothing. It just did not work
             return false;
         }
@@ -96,8 +95,16 @@ class Discussion
             ->setTitle($this->discussion->getAttribute('title'))
             ->setPublishedOn($this->discussion->getAttribute('created_at'));
 
-        // Set discussion description, only when a first post exists
-        if($this->firstPost !== null) {
+
+        if ($this->discussion->getAttribute('discussionType') == "d") {
+            $this->parent
+                ->setDescription("[" . $this->discussion->getAttribute('badgeText') . "] THE DEAL APP has found a best offer at Rs " . $this->discussion->getAttribute('currentPrice') . " for " . $this->discussion->getAttribute('title'))
+                ->setImage($this->discussion->getAttribute('imageUrl_sm'));
+        } else if ($this->discussion->getAttribute('discussionType') == "c") {
+            $this->parent
+                ->setDescription("[" . $this->discussion->getAttribute('badgeText') . "] THE DEAL APP has found a Coupon / Promo Code : " . $this->discussion->getAttribute('title'));
+        } else if ($this->firstPost !== null) {
+            // Set discussion description, only when a first post exists
             $content = $this->firstPost->formatContent();
 
             // Set page description
@@ -109,8 +116,7 @@ class Discussion
         }
 
         // Add updated
-        if($lastPostedOn !== null)
-        {
+        if ($lastPostedOn !== null) {
             $this->parent->setUpdatedOn($lastPostedOn);
         }
 
